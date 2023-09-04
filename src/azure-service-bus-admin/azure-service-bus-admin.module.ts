@@ -1,20 +1,20 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { ServiceBusAdminService } from './azure-service-bus-admin.service';
-import { ServiceBusAdminOptions } from './azure-service-bus-admin-options.interface';
+import { AzureServiceBusAdminService } from './azure-service-bus-admin.service';
+import { AzureServiceBusAdminOptions } from './azure-service-bus-admin-options.interface';
 
 @Module({})
-export class ServiceBusModule {
-  static forRoot(options: ServiceBusAdminOptions): DynamicModule {
+export class AzureServiceBusModule {
+  static forRoot(options: AzureServiceBusAdminOptions): DynamicModule {
     return {
-      module: ServiceBusModule,
+      module: AzureServiceBusModule,
       providers: [
         {
           provide: 'SERVICE_BUS_ADMIN_OPTIONS',
           useValue: options,
         },
-        ServiceBusAdminService,
+        AzureServiceBusAdminService,
       ],
-      exports: [ServiceBusAdminService],
+      exports: [AzureServiceBusAdminService],
     };
   }
 }

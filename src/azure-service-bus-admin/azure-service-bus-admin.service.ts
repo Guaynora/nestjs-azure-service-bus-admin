@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { ServiceBusAdminOptions } from './azure-service-bus-admin-options.interface';
+import { AzureServiceBusAdminOptions } from './azure-service-bus-admin-options.interface';
 import {
   CreateSubscriptionOptions,
   QueueProperties,
@@ -10,12 +10,12 @@ import {
 } from '@azure/service-bus';
 
 @Injectable()
-export class ServiceBusAdminService {
+export class AzureServiceBusAdminService {
   private readonly serviceBusAdminClient: ServiceBusAdministrationClient;
 
   constructor(
     @Inject('SERVICE_BUS_ADMIN_OPTIONS')
-    private readonly options: ServiceBusAdminOptions,
+    private readonly options: AzureServiceBusAdminOptions,
   ) {
     this.serviceBusAdminClient = new ServiceBusAdministrationClient(
       options.connectionString,

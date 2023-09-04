@@ -9,7 +9,7 @@ A dynamic module for NestJS that provides integration with Azure Service Bus.
 ## Installation
 
 ```bash
-npm install nestjs-azure-service-bus
+npm install nestjs-azure-service-bus-admin
 ```
 
 ## Description
@@ -158,9 +158,9 @@ for another method the `ServiceBusReceiver` and `ServiceBusSender` see the [azur
 
 ## Support
 
-- For issues or feature requests, please open an [issue](https://github.com/engcfraposo/nestjs-azure-service-bus/issues).
-- For contributions, please refer to the [contribution guide](https://github.com/engcfraposo/nestjs-azure-service-bus/blob/main/CONTRIBUTING.md).
+- For issues or feature requests, please open an [issue](https://github.com/rbonillajr/nestjs-azure-service-bus-admin/issues).
+- For contributions, please refer to the [contribution guide](https://github.com/rbonillajr/nestjs-azure-service-bus-admin/blob/main/CONTRIBUTING.md).
 
 ## License
 
-This package is [MIT licensed](https://github.com/engcfraposo/nestjs-azure-service-bus/blob/main/LICENSE).
+This package is [MIT licensed](https://github.com/rbonillajr/nestjs-azure-service-bus-admin/blob/main/LICENSE).

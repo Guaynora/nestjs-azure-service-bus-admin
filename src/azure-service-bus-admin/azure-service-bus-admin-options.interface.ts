@@ -1,3 +1,3 @@
-export interface ServiceBusAdminOptions {
+export interface AzureServiceBusAdminOptions {
   connectionString: string;
 }
