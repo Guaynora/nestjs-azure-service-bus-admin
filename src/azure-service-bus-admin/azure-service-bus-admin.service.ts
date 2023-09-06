@@ -9,19 +9,30 @@ import {
   WithResponse,
 } from '@azure/service-bus';
 
+/**
+ * NestJS Service to be used on your application. 
+ * This service provides functionalities in regards of managing Azure Service Bus resources, like Queues, Topics, and Subscriptions.
+ * You can inject this service to your application module an manage those resources from there. 
+ * Only param necessary is the connectionString
+ */
+
 @Injectable()
-export class AzureServiceBusAdminService {
+export class ServiceBusAdminService {
   private readonly serviceBusAdminClient: ServiceBusAdministrationClient;
 
   constructor(
-    @Inject('SERVICE_BUS_ADMIN_OPTIONS')
+    @Inject('AZURE_SERVICE_BUS_CONNECTION')
     private readonly options: AzureServiceBusAdminOptions,
   ) {
     this.serviceBusAdminClient = new ServiceBusAdministrationClient(
       options.connectionString,
     );
   }
-
+  /**
+   * Function that creates a Queue, otherwise it will get the current value
+   * @param queueName 
+   * @returns 
+   */
   async createQueue(queueName: string): Promise<WithResponse<QueueProperties>> {
     const isQueueExist = await this.serviceBusAdminClient.queueExists(
       queueName,
@@ -33,6 +44,12 @@ export class AzureServiceBusAdminService {
     }
   }
 
+  /**
+   * Function that creates a Topic, otherwise it will get the current value
+   * @param topicName 
+   * @returns 
+   */
+
   async createTopic(topicName: string): Promise<WithResponse<TopicProperties>> {
     const isTopicExist = await this.serviceBusAdminClient.topicExists(
       topicName,
@@ -43,6 +60,14 @@ export class AzureServiceBusAdminService {
       return this.serviceBusAdminClient.createTopic(topicName);
     }
   }
+
+  /**
+   * Function that creates a Subscription, otherwise it will get the current value
+   * @param topicName 
+   * @param subscriptionName 
+   * @param options 
+   * @returns 
+   */
 
   async createSubscription(
     topicName: string,

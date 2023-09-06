@@ -1,6 +1,6 @@
 {
   "name": "nestjs-azure-service-bus-admin",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "homepage": "https://github.com/rbonillajr/nestjs-azure-service-bus-admin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,9 +15,11 @@
     "test": "jest",
     "test:watch": "jest --watchAll",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "package": "npm run prepublish && npm pack"
   },
   "dependencies": {
+    "@azure/identity": "^3.3.0",
     "@azure/service-bus": "^7.9.0",
     "@nestjs/common": "^10.2.1",
     "@nestjs/config": "^3.0.0",
