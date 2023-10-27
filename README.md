@@ -51,7 +51,7 @@ import { Sender, Receiver } from 'nestjs-azure-service-bus-admin';
 export class MyService {
   constructor(
     @Sender('my-queue') private readonly sender: ServiceBusSender,
-    @Receiver('my-queue') private readonly receiver: ServiceBusReceiver
+    @Receiver('my-queue') private readonly receiver: ServiceBusReceiver,
   ) {}
 
   // Use the sender and receiver in your methods
@@ -68,9 +68,6 @@ The `forRoot` method of the `ServiceBusModule` accepts a configuration object wi
 - `fullyQualifiedNamespace`: The fully qualified namespace of your Azure Service Bus namespace.
 
 You can provide either the `connectionString` or the `fullyQualifiedNamespace`, but not both.
-
-
-
 
 ### Dynamic Module Options
 
@@ -104,7 +101,7 @@ import { Sender } from 'nestjs-azure-service-bus-admin';
 @Injectable()
 export class QueueSenderService {
   constructor(
-    @Sender('test-queue') private readonly sender: ServiceBusSender
+    @Sender('test-queue') private readonly sender: ServiceBusSender,
   ) {}
   async sendMessage(body: string) {
     await this.sender.sendMessages({ body });
@@ -120,7 +117,7 @@ import { Receiver } from 'nestjs-azure-service-bus-admin';
 @Injectable()
 export class QueueReceiverService implements OnModuleInit {
   constructor(
-    @Receiver('test-queue') private readonly receiver: ServiceBusReceiver
+    @Receiver('test-queue') private readonly receiver: ServiceBusReceiver,
   ) {}
   onModuleInit() {
     this.receiver.subscribe({
@@ -130,7 +127,7 @@ export class QueueReceiverService implements OnModuleInit {
       processError: async (args) => {
         console.log(
           `Error occurred with ${args.entityPath} within ${args.fullyQualifiedNamespace}: `,
-          args.error
+          args.error,
         );
       },
     });
@@ -159,18 +156,27 @@ export class QueueModule {}
 
 for another method the `ServiceBusReceiver` and `ServiceBusSender` see the [azure sdk](https://www.npmjs.com/package/@azure/service-bus)
 
-### ServiceBusAdminService 
+### ServiceBusAdminService
+
 This library provides a new functionality to manage Azure Service Bus resources wherever yoy need on your application
 
-1. Use it directly from the class/service ``ServiceBusAdminService`` example: 
+1. Use it directly from the class/service `ServiceBusAdminService` example:
+
 ```ts
-  const serviceClient = new ServiceBusAdminService({ connectionString: `<your-connection-string>`});
-  const queue = await serviceClient.createQueue("my-queue"); 
-  const topic = await serviceClient.createTopic('my-topic');
-  const subscription = await serviceClient.createSubscription('my-topic', 'my-sub1', {...options});
+const serviceClient = new ServiceBusAdminService({
+  connectionString: `<your-connection-string>`,
+});
+const queue = await serviceClient.createQueue('my-queue');
+const topic = await serviceClient.createTopic('my-topic');
+const subscription = await serviceClient.createSubscription(
+  'my-topic',
+  'my-sub1',
+  { ...options },
+);
 ```
-2. Use it in combination with the useAdminClient function, to make it async onModule Start process, example: 
-__On your app's module__
+
+2. Use it in combination with the useAdminClient function, to make it async onModule Start process, example:
+   **On your app's module**
 
 ```tsx
 @Module({
@@ -180,7 +186,7 @@ __On your app's module__
         connectionString: `<your-connection-string>`,
       }),
       useAdminClient: async (service: ServiceBusAdminService) => {
-        const queue = await serviceClient.createQueue("my-queue"); 
+        const queue = await serviceClient.createQueue("my-queue");
         const topic = await serviceClient.createTopic('my-topic');
         const subscription = await serviceClient.createSubscription('my-topic', 'my-sub1', {...options});
       }
@@ -192,6 +198,71 @@ __On your app's module__
   ],
   })
 ```
+
+### ServiceBusClientService
+
+Service class for interacting with Azure Service Bus using client functionalities, for creating and formating messages.
+
+#### Service Functions: 
+
+1. generateMassTransitMessage: Generates a MassTransit format message ready to be send to Azure Service Bus. Input type must be IMassTransitMessage
+
+#### Usage:
+
+1. Imports the Service to the module you will used:
+
+```ts
+import { Module } from '@nestjs/common';
+import {
+  ServiceBusModule,
+  ServiceBusClientService,
+} from 'nestjs-azure-service-bus-admin';
+import { MyAppResolver } from './my-app.resolver';
+import { MyAppService } from './my-app.service';
+
+@Module({
+  imports: [
+    ServiceBusModule.forFeature({
+      senders: ['my-queue'],
+    }),
+  ],
+  providers: [MyAppResolver, MyAppService, ServiceBusClientService],
+})
+export class MyAppModule {}
+```
+
+2. Define the injected service in your local service:
+
+```ts
+import { Injectable } from '@nestjs/common';
+import {
+  Sender,
+  ServiceBusClientService,
+  IMassTransitMessage
+} from 'nestjs-azure-service-bus-admin';
+import { ServiceBusSender } from '@azure/service-bus';
+
+@Injectable()
+export class MyAppService {
+  constructor(
+    @Sender('my-queue')
+    private readonly senderCreate: ServiceBusSender,
+    private readonly serviceBusClientService: ServiceBusClientService,
+  ) {}
+}
+```
+
+3. Use the injected service:
+
+```ts
+const message = this.serviceBusClientService.generateMassTransitMessage({
+  connString: MY_CONNECTION_STR,
+  queueOrTopic: AZ_SERVICES_BUS_TOPIC,
+  messages: MY_MESSAGE,
+  messageType: SERVICE_BUS_NOTIFIACTION_URN,
+} as IMassTransitMessage);
+```
+
 ## Support
 
 - For issues or feature requests, please open an [issue](https://github.com/rbonillajr/nestjs-azure-service-bus-admin/issues).
