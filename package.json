@@ -1,6 +1,6 @@
 {
   "name": "nestjs-azure-service-bus-admin",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "homepage": "https://github.com/rbonillajr/nestjs-azure-service-bus-admin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,7 +25,9 @@
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^10.2.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "type-fest": "^4.6.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -62,7 +64,8 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/index.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
