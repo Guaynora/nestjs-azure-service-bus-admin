@@ -1,9 +1,4 @@
 import type { PartialDeep } from 'type-fest';
-import {
-  NotificacionAudienceCreate,
-  NotificacionAudienceDelete
-} from "./azure-service-bus-client-notificationhub.interface";
-
 /**
  * Host properties need by MassTransit Host
  */
@@ -28,7 +23,7 @@ export type MessageBus = {
   sourceAddress: string;
   destinationAddress: string;
   messageType: string[];
-  message: NotificacionAudienceCreate | NotificacionAudienceDelete; // Here should be added more types as they will be supported
+  message: Record<any, any>; // Here should be added more types as they will be supported
   sentTime: Date;
   host: MassTransitHost;
 };
@@ -37,9 +32,9 @@ export type MessageBus = {
  * Input data for sending @generateMassTransitSchema
  */
 export interface IMassTransitMessage {
-  connString: string,
-  queueOrTopic: string,
-  messages: MessageBus['message'],
-  messageType: string
-  hostMessageValues?: PartialDeep<MassTransitHost>
+  connString: string;
+  queueOrTopic: string;
+  messages: MessageBus['message'];
+  messageType: string;
+  hostMessageValues?: PartialDeep<MassTransitHost>;
 }
