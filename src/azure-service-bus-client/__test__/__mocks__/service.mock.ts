@@ -8,6 +8,7 @@ export const validMessage = {
     DeviceToken: "test-DeviceToken",
     Email: "test-email",
     DeviceiOSToken: "test-deviceiOSToken",
+    DeviceHuaweiToken: "test-deviceHuaweiToken",
     IdApplication: "test-IdApplication",
 };
 

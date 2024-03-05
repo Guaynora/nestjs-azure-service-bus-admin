@@ -23,7 +23,7 @@ export type MessageBus = {
   sourceAddress: string;
   destinationAddress: string;
   messageType: string[];
-  message: Record<any, any>; // Here should be added more types as they will be supported
+  message: Record<any, any>;
   sentTime: Date;
   host: MassTransitHost;
 };

@@ -1,1 +1,1 @@
-export * from './notification-hub.constant';
+export * from './masstransit.constant';
