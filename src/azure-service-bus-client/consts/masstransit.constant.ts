@@ -1,5 +1,5 @@
 /**
- * Constant used on @generateMessage for persisten values
+ * Constant used on @generateMassTransitSchema for persisten values
  */
 
 export const HOST_MESSAGE_VALUES = {
