@@ -51,7 +51,8 @@ import { Sender, Receiver } from 'nestjs-azure-service-bus-admin';
 export class MyService {
   constructor(
     @Sender('my-queue') private readonly sender: ServiceBusSender,
-    @Receiver('my-queue') private readonly receiver: ServiceBusReceiver,
+    @Receiver({ name: 'my-queue' })
+    private readonly receiver: ServiceBusReceiver,
   ) {}
 
   // Use the sender and receiver in your methods
@@ -74,7 +75,7 @@ You can provide either the `connectionString` or the `fullyQualifiedNamespace`, 
 The `forFeature` method of the `ServiceBusModule` allows you to configure senders and receivers dynamically. It accepts an options object with two properties:
 
 - `senders`: An array of sender names.
-- `receivers`: An array of receiver names.
+- `receivers`: An array of receiver configurations.
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -84,7 +85,7 @@ import { ServiceBusModule } from 'nestjs-azure-service-bus-admin';
   imports: [
     ServiceBusModule.forFeature({
       senders: ['queue-example'],
-      receivers: ['queue-example'],
+      receivers: [{ name: 'queue-example' }],
     }),
   ],
 })
@@ -144,7 +145,7 @@ import { QueueReceiverService } from './queue-receiver.service';
 @Module({
   imports: [
     ServiceBusModule.forFeature({
-      receivers: ['test-queue'],
+      receivers: [{ name: 'test-queue' }],
       senders: ['test-queue'],
     }),
   ],
@@ -155,6 +156,78 @@ export class QueueModule {}
 ```
 
 for another method the `ServiceBusReceiver` and `ServiceBusSender` see the [azure sdk](https://www.npmjs.com/package/@azure/service-bus)
+
+### Retry and Dead Letter for Receivers
+
+Starting from the latest version, you can configure receivers with custom retry logic and automatic dead-letter (DLQ) handling using the `AzureServiceBusRetryService`.
+
+#### Configuring Receivers with Retry
+
+You can define receivers with retry options using `ServiceBusModule.forFeature` or `forFeatureAsync`:
+
+```typescript
+@Module({
+  imports: [
+    ServiceBusModule.forFeature({
+      senders: ['my-queue'],
+      receivers: [
+        {
+          name: 'my-queue',
+          retry: {
+            maxRetries: 3, // Maximum number of retry attempts
+            delayIntervals: [1000, 2000, 5000], // Milliseconds between retries
+          },
+        },
+      ],
+    }),
+  ],
+})
+export class MyModule {}
+```
+
+With this configuration, failed messages will be automatically rescheduled for retry according to the defined policy. If the maximum number of retries is exceeded, the message will be sent to the Dead Letter Queue (DLQ) with the reason `MaxCustomRetryAttemptsExceeded`.
+
+#### Configuring Receivers for Dead Letter Queue
+
+You can also create a receiver that listens directly to the Dead Letter Queue:
+
+```typescript
+@Module({
+  imports: [
+    ServiceBusModule.forFeature({
+      senders: ['my-queue'],
+      receivers: [{ name: 'my-queue', deadLetter: true }],
+    }),
+  ],
+})
+export class MyModule {}
+```
+
+#### How does the retry service work?
+
+The `AzureServiceBusRetryService` intercepts message processing and, in case of failure, schedules the message for retry based on your configuration. Retry metadata is stored in the message's application properties to track the number of attempts and delay intervals. When the maximum number of retries is reached, the message is automatically moved to the DLQ.
+
+#### Example usage in a receiver
+
+```typescript
+@Injectable()
+export class QueueReceiverService implements OnModuleInit {
+  constructor(
+    @Receiver({ name: 'my-queue', deadLetter: true })
+    private readonly receiver: ServiceBusReceiver,
+  ) {}
+  onModuleInit() {
+    this.receiver.subscribe({
+      processMessage: async (message) => {
+        // Your processing logic
+      },
+      processError: async (args) => {
+        // Error handling logic
+      },
+    });
+  }
+}
+```
 
 ### ServiceBusAdminService
 
@@ -203,7 +276,7 @@ const subscription = await serviceClient.createSubscription(
 
 Service class for interacting with Azure Service Bus using client functionalities, for creating and formating messages.
 
-#### Service Functions: 
+#### Service Functions:
 
 1. generateMassTransitMessage: Generates a MassTransit format message ready to be send to Azure Service Bus. Input type must be IMassTransitMessage
 
@@ -238,7 +311,7 @@ import { Injectable } from '@nestjs/common';
 import {
   Sender,
   ServiceBusClientService,
-  IMassTransitMessage
+  IMassTransitMessage,
 } from 'nestjs-azure-service-bus-admin';
 import { ServiceBusSender } from '@azure/service-bus';
 
