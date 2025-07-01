@@ -1,44 +1,73 @@
-import { ServiceBusModule } from "../azure-service-bus-admin.module";
+import { ServiceBusModule } from '../azure-service-bus-admin.module';
 import * as serviceClient from '@azure/service-bus';
 import * as azureIdentity from '@azure/identity';
 import * as adminClient from '../azure-service-bus-admin.service';
 
-const mockServiceBusClient = jest.spyOn(serviceClient, "ServiceBusClient");
-const mockDefaultAzureCredential = jest.spyOn(azureIdentity, "DefaultAzureCredential");
-const mockServiceBusAdminService = jest.spyOn(adminClient, "ServiceBusAdminService");
-
+const mockServiceBusClient = jest.spyOn(serviceClient, 'ServiceBusClient');
+const mockDefaultAzureCredential = jest.spyOn(
+  azureIdentity,
+  'DefaultAzureCredential',
+);
+const mockServiceBusAdminService = jest.spyOn(
+  adminClient,
+  'ServiceBusAdminService',
+);
 
 type MockServiceModuleType = {
-  module: any,
-  providers?: any[],
-  exports?: any[],
-}
+  module: any;
+  providers?: any[];
+  exports?: any[];
+};
+const mockClient = {
+  createReceiver: jest.fn().mockReturnValue({}),
+  createSender: jest.fn().mockReturnValue({}),
+} as any;
 
 const mockUseFactory = jest.fn();
 const mockUseAdminClient = jest.fn();
 
-const mockUseFactoryForFeatAsync = { useFactory: jest.fn().mockResolvedValue({ senders: ['testSender'], receivers: ['testReceiver'] }) }
-const PROVIDER_NAME = "AZURE_SERVICE_BUS_CONNECTION";
-const SENDER_NAME = "AZURE_SB_SENDER_TESTSENDER";
-const RECIEVER_NAME = "AZURE_SB_RECEIVER_TESTRECEIVER";
-const OPTIONS_PROVIDER = "AZURE_SB_OPTIONS";
-const SENDER_DECORATOR = "AZURE_SB_SENDERS";
-const RECIEVER_DECORATOR = "AZURE_SB_RECEIVERS";
+const mockUseFactoryForFeatAsync = {
+  useFactory: jest.fn().mockResolvedValue({
+    senders: ['testSender'],
+    receivers: ['testReceiver'],
+  }),
+};
+const PROVIDER_NAME = 'AZURE_SERVICE_BUS_CONNECTION';
+const SENDER_NAME = 'AZURE_SB_SENDER_TESTSENDER';
+const RECIEVER_NAME = 'AZURE_SB_RECEIVER_TESTRECEIVER';
+const OPTIONS_PROVIDER = 'AZURE_SB_OPTIONS';
+const SENDER_DECORATOR = 'AZURE_SB_SENDERS';
+const RECIEVER_DECORATOR = 'AZURE_SB_RECEIVERS';
+
+const optionsWithTryReceiver = {
+  senders: ['testSender'],
+  receivers: [
+    {
+      name: 'testReceiver',
+      retry: { maxRetries: 3, delayIntervals: [1000] },
+    },
+  ],
+};
+
+const optionsDeadLetter = {
+  senders: ['testSender'],
+  receivers: [{ name: 'testReceiver', deadLetter: true }],
+};
 
 beforeAll(() => {
   mockServiceBusClient.mockReturnValue({} as never);
   mockDefaultAzureCredential.mockReturnValue({ credentials: true } as never);
-})
+});
 
 describe('ServiceBusModule For Root methods', () => {
-
   // Tests that the forRoot method returns a DynamicModule with providers and exports
   it('should return a DynamicModule with providers and exports when options parameter is provided', () => {
     // Arrange
     const options = { connectionString: 'testConnectionString' };
 
     // Act
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forRoot(options);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forRoot(options);
     const { providers, exports, module } = dynamicModule;
 
     // Assert
@@ -54,12 +83,13 @@ describe('ServiceBusModule For Root methods', () => {
   });
 
   // Test the flow when no @connectionString is set
-  it("should return Credentials value when no connectionString is set on forRoot", () => {
+  it('should return Credentials value when no connectionString is set on forRoot', () => {
     const mockOptions = {
-      fullyQualifiedNamespace: "test"
+      fullyQualifiedNamespace: 'test',
     };
     mockServiceBusClient.mockReturnValue({ test: true } as never);
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forRoot(mockOptions);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forRoot(mockOptions);
     const { providers, exports } = dynamicModule;
 
     expect(providers[0].useValue.test).toBeTruthy();
@@ -67,18 +97,21 @@ describe('ServiceBusModule For Root methods', () => {
   });
 
   // Test the flow when no @connectionString and @useAdminClient are set
-  it("should return Credentials and execute useAdminClient when they are set", async () => {
+  it('should return Credentials and execute useAdminClient when they are set', async () => {
     mockServiceBusClient.mockReturnValue({ test: true } as never);
     mockServiceBusAdminService.mockReturnValue({ client: true } as never);
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forRootAsync(
-      {
-        useFactory: jest.fn().mockResolvedValue({ connectionString: 'testConnectionString' }),
-        useAdminClient: async (e: never) => { await mockUseAdminClient(e) }
-      });
+    const dynamicModule: MockServiceModuleType = ServiceBusModule.forRootAsync({
+      useFactory: jest
+        .fn()
+        .mockResolvedValue({ connectionString: 'testConnectionString' }),
+      useAdminClient: async (e: never) => {
+        await mockUseAdminClient(e);
+      },
+    });
     const { providers, exports } = dynamicModule;
     await exports[0].useFactory();
-    expect(providers[0].useFactory.constructor.name).toEqual("AsyncFunction");
-    expect(exports[0].useFactory.constructor.name).toEqual("AsyncFunction");
+    expect(providers[0].useFactory.constructor.name).toEqual('AsyncFunction');
+    expect(exports[0].useFactory.constructor.name).toEqual('AsyncFunction');
     expect(mockUseAdminClient).toHaveBeenCalled();
   });
 
@@ -86,12 +119,15 @@ describe('ServiceBusModule For Root methods', () => {
   it('should return a DynamicModule with providers and exports when options parameter is provided', async () => {
     // Arrange
     const options = {
-      useFactory: jest.fn().mockResolvedValue({ connectionString: 'testConnectionString' }),
-      inject: []
+      useFactory: jest
+        .fn()
+        .mockResolvedValue({ connectionString: 'testConnectionString' }),
+      inject: [],
     };
 
     // Act
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forRootAsync(options);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forRootAsync(options);
     const { providers, exports, module } = dynamicModule;
 
     // Assert
@@ -104,41 +140,39 @@ describe('ServiceBusModule For Root methods', () => {
     expect(exports[0].provide).toBe(PROVIDER_NAME);
   });
 
-  it("should return Credentials value when no connectionString is set on forRootAsync", async () => {
+  it('should return Credentials value when no connectionString is set on forRootAsync', async () => {
     const mockOptions = {
       useFactory: mockUseFactory,
     };
     const serviceBusOpts = { test: true };
-    mockUseFactory.mockReturnValue({ connectionString: "test" })
+    mockUseFactory.mockReturnValue({ connectionString: 'test' });
     mockServiceBusClient.mockReturnValue(serviceBusOpts as never);
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forRootAsync(mockOptions);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forRootAsync(mockOptions);
     const { providers, exports } = dynamicModule;
 
     expect(providers[0].provide).toEqual(PROVIDER_NAME);
-    expect(providers[0].useFactory.constructor.name).toEqual("AsyncFunction");
+    expect(providers[0].useFactory.constructor.name).toEqual('AsyncFunction');
     expect(exports[0].provide).toEqual(PROVIDER_NAME);
-    expect(exports[0].useFactory.constructor.name).toEqual("AsyncFunction");
+    expect(exports[0].useFactory.constructor.name).toEqual('AsyncFunction');
     expect(await exports[0].useFactory()).toEqual(serviceBusOpts);
     mockUseFactory.mockReturnValue({});
     expect(await exports[0].useFactory()).toEqual(serviceBusOpts);
-
   });
-
-
-
 });
 
-
-
-describe("ServiceBusModule ForFeature Methods", () => {
-
+describe('ServiceBusModule ForFeature Methods', () => {
   // Tests that the forFeature method returns a DynamicModule with providers and exports
   it('should return a DynamicModule with providers and exports when options parameter is provided', () => {
     // Arrange
-    const options = { senders: ['testSender'], receivers: ['testReceiver'] };
+    const options = {
+      senders: ['testSender'],
+      receivers: [{ name: 'testReceiver' }],
+    };
 
     // Act
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forFeature(options);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeature(options);
     const { providers, exports, module } = dynamicModule;
 
     // Assert
@@ -154,17 +188,44 @@ describe("ServiceBusModule ForFeature Methods", () => {
     expect(exports[1].provide).toBe(RECIEVER_NAME);
   });
 
+  it('should create dead letter receivers using AzureServiceBusRetryService and createEnhancedServiceBusReceiver', () => {
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeature(optionsDeadLetter);
+    const { providers } = dynamicModule;
+    expect(dynamicModule).toBeDefined();
+    providers[1].useFactory(mockClient);
+    expect(mockClient.createReceiver).toHaveBeenCalledWith('testReceiver', {
+      subQueueType: 'deadLetter',
+    });
+    expect(mockClient.createReceiver).toHaveBeenCalledTimes(1);
+  });
+
+  it('should execute useFactory and validate retry configuration', () => {
+    const dynamicModule: MockServiceModuleType = ServiceBusModule.forFeature(
+      optionsWithTryReceiver,
+    );
+    const retryProvider = dynamicModule.providers?.find(
+      (p) =>
+        p.provide.toString().includes('TESTRECEIVER') &&
+        !p.provide.toString().includes('DLQ'),
+    );
+    expect(retryProvider.useFactory).toBeDefined();
+    expect(() => {
+      retryProvider.useFactory(mockClient);
+    }).not.toThrow();
+  });
 
   // Tests that the forFeatureAsync method returns a DynamicModule with providers and exports
   it('should return a DynamicModule with providers and exports when options parameter is provided', async () => {
     // Arrange
     const options = {
       ...mockUseFactoryForFeatAsync,
-      inject: []
+      inject: [],
     };
 
     // Act
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forFeatureAsync(options);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeatureAsync(options);
     const { providers, exports, module } = dynamicModule;
 
     // Assert
@@ -182,36 +243,84 @@ describe("ServiceBusModule ForFeature Methods", () => {
     expect(exports[1].provide).toBe(RECIEVER_DECORATOR);
   });
 
+  it('should execute retryReceivers forEach', async () => {
+    const mockUseFactoryForFeatAsync = {
+      useFactory: jest.fn().mockResolvedValue(optionsWithTryReceiver),
+    };
+    const options = {
+      ...mockUseFactoryForFeatAsync,
+      inject: [],
+    };
+
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeatureAsync(options);
+    const optionsProvider = dynamicModule.providers?.[0];
+    const receiverProvider = dynamicModule.providers?.[2];
+    const resolvedOptions = await optionsProvider?.useFactory();
+
+    const receivers = await receiverProvider?.useFactory(
+      mockClient,
+      resolvedOptions,
+    );
+    expect(receivers).toBeDefined();
+    expect(mockClient.createReceiver).toHaveBeenCalledWith('testReceiver');
+  });
+
+  it('should execute dlqReceivers forEach', async () => {
+    const mockUseFactoryForFeatAsync = {
+      useFactory: jest.fn().mockResolvedValue(optionsDeadLetter),
+    };
+    const options = {
+      ...mockUseFactoryForFeatAsync,
+      inject: [],
+    };
+
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeatureAsync(options);
+    const optionsProvider = dynamicModule.providers?.[0];
+    const receiverProvider = dynamicModule.providers?.[2];
+    const resolvedOptions = await optionsProvider.useFactory();
+    await receiverProvider.useFactory(mockClient, resolvedOptions);
+    expect(mockClient.createReceiver).toHaveBeenCalledWith('testReceiver', {
+      subQueueType: 'deadLetter',
+    });
+
+    expect(mockClient.createReceiver).toHaveBeenCalled();
+  });
+
   // Tests that the forFeature method interacts correctly with useFactory when senders and recievers are set
   it('should return a DynamicModule with providers and exports when options parameter is provided', async () => {
-    const options = { senders: ['testSender'], receivers: ['testReceiver'] };
+    const options = {
+      senders: ['testSender'],
+      receivers: [{ name: 'testReceiver' }],
+    };
     // Act
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forFeature(options);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeature(options);
     const { providers } = dynamicModule;
     providers[0].useFactory({ createSender: jest.fn() });
     providers[1].useFactory({ createReceiver: jest.fn() });
-    expect(providers[0].useFactory.constructor.name).toEqual("Function");
-    expect(providers[1].useFactory.constructor.name).toEqual("Function");
+    expect(providers[0].useFactory.constructor.name).toEqual('Function');
+    expect(providers[1].useFactory.constructor.name).toEqual('Function');
   });
-
 
   // Tests that the forFeature method interacts correctly with useFactory when senders and recievers are NOT set
   it('should not break when options parameter are NOT provided', async () => {
     const options = {};
     // Act
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forFeature(options);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeature(options);
     const { providers } = dynamicModule;
-    expect(Array.isArray(providers)).toBeTruthy()
-    expect(providers.length).toEqual(0)
+    expect(Array.isArray(providers)).toBeTruthy();
+    expect(providers.length).toEqual(0);
   });
-
-
 
   // Tests that the forFeatureAsync method interacts correctly with useFactory when senders and recievers are set
   it('should return a DynamicModule with providers and exports when options parameter is provided', async () => {
     const options = { senders: ['testSender'], receivers: ['testReceiver'] };
     // Act
-    const dynamicModule: MockServiceModuleType = ServiceBusModule.forFeatureAsync(mockUseFactoryForFeatAsync);
+    const dynamicModule: MockServiceModuleType =
+      ServiceBusModule.forFeatureAsync(mockUseFactoryForFeatAsync);
     const { providers, exports } = dynamicModule;
     providers[0].useFactory(options);
     providers[1].useFactory({ createSender: jest.fn() }, options);
@@ -225,5 +334,4 @@ describe("ServiceBusModule ForFeature Methods", () => {
     expect(Array.isArray(exports)).toBeTruthy();
     expect(exports.length).toEqual(2);
   });
-
-})
+});

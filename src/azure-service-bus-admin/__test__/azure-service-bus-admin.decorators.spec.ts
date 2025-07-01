@@ -21,12 +21,31 @@ describe('Receiver', () => {
 
     // Tests that the function works correctly when called with a valid queue name
     it('should work correctly when called with a valid queue name', () => {
-        // Mock the queue name
-        const queue = 'validQueue';
+        // Mock the receiver config
+        const receiverConfig = { name: 'validQueue' };
         // Call the Receiver function
-        const resp = Receiver(queue);
+        const resp = Receiver(receiverConfig);
         // Verify that the Inject decorator was called with the correct argument
         expect(resp.constructor.name).toEqual("Function");
     });
 
+    // Tests that the function works correctly when called with a valid queue name and subqueue
+    it('should work correctly when called with a valid queue name and subqueue', () => {
+        // Mock the receiver config with subqueue
+        const receiverConfig = { name: 'validQueue', subqueue: true};
+        // Call the Receiver function
+        const resp = Receiver(receiverConfig);
+        // Verify that the Inject decorator was called with the correct argument
+        expect(resp.constructor.name).toEqual("Function");
+    });
+
+    // Tests that the function works correctly when called with a valid queue name and sessionId
+    it('should work correctly when called with a valid queue name and sessionId', () => {
+        // Mock the receiver config with sessionId
+        const receiverConfig = { name: 'validQueue', sessionId: 'session123' };
+        // Call the Receiver function
+        const resp = Receiver(receiverConfig);
+        // Verify that the Inject decorator was called with the correct argument
+        expect(resp.constructor.name).toEqual("Function"); 
+    });
 });
