@@ -1,6 +1,6 @@
 {
   "name": "nestjs-azure-service-bus-admin",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "homepage": "https://github.com/rbonillajr/nestjs-azure-service-bus-admin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -12,6 +12,22 @@ A dynamic module for NestJS that provides integration with Azure Service Bus and
 npm install nestjs-azure-service-bus-admin
 ```
 
+## ⚠️ Breaking Changes v1.2.0
+
+**Configuration syntax updated - senders and receivers now use objects:**
+
+```typescript
+// v1.0.1 ❌
+senders: ['queue-name'], receivers: ['queue-name']
+
+// v1.2.0 ✅
+senders: [{ name: 'queue-name' }], receivers: [{ name: 'queue-name' }]
+```
+
+**Migration:** Wrap existing queue names in objects with `name` property. Decorators unchanged.
+
+---
+
 ## Description
 
 The NestJS Azure Service Bus package allows you to easily integrate Azure Service Bus into your NestJS applications. It provides decorators for injecting Azure Service Bus senders and receivers, as well as a dynamic module for configuring the Azure Service Bus client.
@@ -50,7 +66,7 @@ import { Sender, Receiver } from 'nestjs-azure-service-bus-admin';
 @Injectable()
 export class MyService {
   constructor(
-    @Sender('my-queue') private readonly sender: ServiceBusSender,
+    @Sender({ name: 'my-queue' }) private readonly sender: ServiceBusSender,
     @Receiver({ name: 'my-queue' })
     private readonly receiver: ServiceBusReceiver,
   ) {}
@@ -74,7 +90,7 @@ You can provide either the `connectionString` or the `fullyQualifiedNamespace`, 
 
 The `forFeature` method of the `ServiceBusModule` allows you to configure senders and receivers dynamically. It accepts an options object with two properties:
 
-- `senders`: An array of sender names.
+- `senders`: An array of sender configurations.
 - `receivers`: An array of receiver configurations.
 
 ```typescript
@@ -84,7 +100,7 @@ import { ServiceBusModule } from 'nestjs-azure-service-bus-admin';
 @Module({
   imports: [
     ServiceBusModule.forFeature({
-      senders: ['queue-example'],
+      senders: [{ name: 'queue-example' }],
       receivers: [{ name: 'queue-example' }],
     }),
   ],
@@ -102,7 +118,7 @@ import { Sender } from 'nestjs-azure-service-bus-admin';
 @Injectable()
 export class QueueSenderService {
   constructor(
-    @Sender('test-queue') private readonly sender: ServiceBusSender,
+    @Sender({ name: 'test-queue' }) private readonly sender: ServiceBusSender,
   ) {}
   async sendMessage(body: string) {
     await this.sender.sendMessages({ body });
@@ -118,7 +134,8 @@ import { Receiver } from 'nestjs-azure-service-bus-admin';
 @Injectable()
 export class QueueReceiverService implements OnModuleInit {
   constructor(
-    @Receiver('test-queue') private readonly receiver: ServiceBusReceiver,
+    @Receiver({ name: 'test-queue' })
+    private readonly receiver: ServiceBusReceiver,
   ) {}
   onModuleInit() {
     this.receiver.subscribe({
@@ -146,7 +163,7 @@ import { QueueReceiverService } from './queue-receiver.service';
   imports: [
     ServiceBusModule.forFeature({
       receivers: [{ name: 'test-queue' }],
-      senders: ['test-queue'],
+      senders: [{ name: 'test-queue' }],
     }),
   ],
   providers: [QueueSenderService, QueueReceiverService],
@@ -169,7 +186,7 @@ You can define receivers with retry options using `ServiceBusModule.forFeature` 
 @Module({
   imports: [
     ServiceBusModule.forFeature({
-      senders: ['my-queue'],
+      senders: [{ name: 'my-queue' }],
       receivers: [
         {
           name: 'my-queue',
@@ -195,7 +212,7 @@ You can also create a receiver that listens directly to the Dead Letter Queue:
 @Module({
   imports: [
     ServiceBusModule.forFeature({
-      senders: ['my-queue'],
+      senders: [{ name: 'my-queue' }],
       receivers: [{ name: 'my-queue', deadLetter: true }],
     }),
   ],
@@ -276,11 +293,11 @@ const subscription = await serviceClient.createSubscription(
 
 Service class for interacting with Azure Service Bus using client functionalities, for creating and formating messages.
 
-#### Service Functions:
+#### Service Functions
 
 1. generateMassTransitMessage: Generates a MassTransit format message ready to be send to Azure Service Bus. Input type must be IMassTransitMessage
 
-#### Usage:
+#### Usage
 
 1. Imports the Service to the module you will used:
 
@@ -296,7 +313,7 @@ import { MyAppService } from './my-app.service';
 @Module({
   imports: [
     ServiceBusModule.forFeature({
-      senders: ['my-queue'],
+      senders: [{ name: 'my-queue' }],
     }),
   ],
   providers: [MyAppResolver, MyAppService, ServiceBusClientService],
@@ -318,7 +335,7 @@ import { ServiceBusSender } from '@azure/service-bus';
 @Injectable()
 export class MyAppService {
   constructor(
-    @Sender('my-queue')
+    @Sender({ name: 'my-queue' })
     private readonly senderCreate: ServiceBusSender,
     private readonly serviceBusClientService: ServiceBusClientService,
   ) {}

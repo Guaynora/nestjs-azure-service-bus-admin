@@ -10,6 +10,10 @@ export interface RetryConfiguration {
   delayIntervals: number[];
 }
 
+export interface SenderConfig {
+  name: string;
+}
+
 export interface ReceiverConfig {
   name: string;
   deadLetter?: boolean;
@@ -21,7 +25,7 @@ export interface ReceiverConfig {
  * Types on Module forFeature and forFeatureAsync for options
  */
 export type AzureSBSenderReceiverOptions = {
-  senders?: string[];
+  senders?: SenderConfig[];
   receivers?: ReceiverConfig[];
 };
 
