@@ -107,9 +107,10 @@ export class ServiceBusModule {
    */
   static forFeature(options: AzureSBSenderReceiverOptions): DynamicModule {
     const senderProviders =
-      options.senders?.map((queue) => ({
-        provide: `AZURE_SB_SENDER_${queue.toUpperCase()}`,
-        useFactory: (client: ServiceBusClient) => client.createSender(queue),
+      options.senders?.map((senderConfig) => ({
+        provide: `AZURE_SB_SENDER_${senderConfig.name.toUpperCase()}`,
+        useFactory: (client: ServiceBusClient) =>
+          client.createSender(senderConfig.name),
         inject: ['AZURE_SERVICE_BUS_CONNECTION'],
       })) || [];
 
@@ -191,7 +192,10 @@ export class ServiceBusModule {
       useFactory: (
         client: ServiceBusClient,
         options: AzureSBSenderReceiverOptions,
-      ) => options.senders?.map((queue) => client.createSender(queue)),
+      ) =>
+        options.senders?.map((senderConfig) =>
+          client.createSender(senderConfig.name),
+        ) || [],
       inject: ['AZURE_SERVICE_BUS_CONNECTION', 'AZURE_SB_OPTIONS'],
     };
 

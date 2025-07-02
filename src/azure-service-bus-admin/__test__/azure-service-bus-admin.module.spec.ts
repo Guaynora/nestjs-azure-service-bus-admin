@@ -28,8 +28,8 @@ const mockUseAdminClient = jest.fn();
 
 const mockUseFactoryForFeatAsync = {
   useFactory: jest.fn().mockResolvedValue({
-    senders: ['testSender'],
-    receivers: ['testReceiver'],
+    senders: [{ name: 'testSender' }],
+    receivers: [{ name: 'testReceiver' }],
   }),
 };
 const PROVIDER_NAME = 'AZURE_SERVICE_BUS_CONNECTION';
@@ -40,7 +40,7 @@ const SENDER_DECORATOR = 'AZURE_SB_SENDERS';
 const RECIEVER_DECORATOR = 'AZURE_SB_RECEIVERS';
 
 const optionsWithTryReceiver = {
-  senders: ['testSender'],
+  senders: [{ name: 'testSender' }],
   receivers: [
     {
       name: 'testReceiver',
@@ -50,7 +50,7 @@ const optionsWithTryReceiver = {
 };
 
 const optionsDeadLetter = {
-  senders: ['testSender'],
+  senders: [{ name: 'testSender' }],
   receivers: [{ name: 'testReceiver', deadLetter: true }],
 };
 
@@ -166,7 +166,7 @@ describe('ServiceBusModule ForFeature Methods', () => {
   it('should return a DynamicModule with providers and exports when options parameter is provided', () => {
     // Arrange
     const options = {
-      senders: ['testSender'],
+      senders: [{ name: 'testSender' }],
       receivers: [{ name: 'testReceiver' }],
     };
 
@@ -291,7 +291,7 @@ describe('ServiceBusModule ForFeature Methods', () => {
   // Tests that the forFeature method interacts correctly with useFactory when senders and recievers are set
   it('should return a DynamicModule with providers and exports when options parameter is provided', async () => {
     const options = {
-      senders: ['testSender'],
+      senders: [{ name: 'testSender' }],
       receivers: [{ name: 'testReceiver' }],
     };
     // Act
